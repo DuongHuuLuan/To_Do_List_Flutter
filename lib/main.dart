@@ -4,6 +4,7 @@ import 'addTask.dart';
 import 'editTask.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'task.dart';
+import 'task_detail.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -88,14 +89,38 @@ class _TodoHomeState extends State<TodoHome> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('My Tasks'),
+        // backgroundColor: Theme.of(context).colorScheme.,
+        title: const Text(
+          'My Tasks',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color.fromARGB(255, 6, 150, 169),
+                Color.fromARGB(255, 97, 222, 222),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
       ),
       body: ValueListenableBuilder(
         valueListenable: taskBox.listenable(),
         builder: (context, Box<Task> box, _) {
           if (box.isEmpty) {
-            return const Center(child: Text('Chưa có công việc nào'));
+            return const Center(
+              child: Text(
+                'Chưa có công việc nào',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            );
           }
           final tasks = box.values.toList();
           return ListView.separated(
@@ -107,6 +132,7 @@ class _TodoHomeState extends State<TodoHome> {
                   return _deleteTask(index);
                 },
                 onEdit: () {
+                  // hiển thị form chỉnh sửa task gọi từ editTask.dart
                   showEditTaskForm(
                     context: context,
                     editTask: task,
@@ -116,54 +142,20 @@ class _TodoHomeState extends State<TodoHome> {
                   );
                 },
                 onToggle: () {
+                  // thay đổi trạng thái
                   return _toggleTask(index);
                 },
                 onTap: () {
-                  showDialog(
+                  // hiển thị chi tiết công việc gọi từ task_detail.dart
+                  showTaskDetailDialog(
                     context: context,
-                    builder: (_) {
-                      return AlertDialog(
-                        title: Text(task.title),
-                        content: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Mô tả: ${task.description.isNotEmpty ? task.description : 'Không có'}',
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              'Trạng thái: ${task.isDone == true ? 'Đã xong' : 'Chưa xong'}',
-                            ),
-                          ],
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                              showEditTaskForm(
-                                context: context,
-                                editTask: task,
-                                onSave: (updatedTask) {
-                                  _updateTask(index, updatedTask);
-                                },
-                              );
-                            },
-                            child: const Text("Sửa"),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                              _deleteTask(index);
-                            },
-                            child: const Text('Xóa'),
-                          ),
-
-                          ElevatedButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Đóng'),
-                          ),
-                        ],
-                      );
+                    task: task,
+                    index: index,
+                    onDelete: (index) {
+                      _deleteTask(index);
+                    },
+                    onUpdate: (updatedTask) {
+                      _updateTask(index, updatedTask);
                     },
                   );
                 },
@@ -181,101 +173,9 @@ class _TodoHomeState extends State<TodoHome> {
         onPressed: () {
           showAddTaskForm(context: context, onSave: _addTask);
         },
+        backgroundColor: const Color.fromARGB(255, 63, 210, 195),
         child: const Icon(Icons.add),
       ),
     );
   }
-  // noi dung
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Scaffold(
-  //     appBar: AppBar(
-  //       backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-  //       title: const Text('My Tasks'),
-  //     ),
-  //     body: ValueListenableBuilder(
-  //       valueListenable: taskBox.listenable(),
-  //       builder: (context, Box<Task> box,_){
-  //     ListView.separated(
-  //       itemBuilder: (context, index) {
-  //         final task = _tasks[index];
-  //         return TaskCard(
-  //           task: task,
-  //           onToggle: () {
-  //             setState(() {
-  //               task.isDone = !task.isDone;
-  //             });
-  //           },
-  //           // hiển thị chi tiết công việc khi người dùng nhấn vào gọi callback đến taskCard
-  //           onTap: () {
-  //             showDialog(
-  //               context: context,
-  //               builder: (_) {
-  //                 return AlertDialog(
-  //                   title: Text(task.title),
-  //                   content: Column(
-  //                     mainAxisSize: MainAxisSize.min,
-  //                     children: [
-  //                       Text(
-  //                         'Mô tả: ${task.description.isNotEmpty ? task.description : "Không có"}',
-  //                       ),
-  //                       const SizedBox(height: 10),
-  //                       Text(
-  //                         'Trạng thái ${task.isDone == true ? 'Đã xong' : 'Chưa xong'}',
-  //                       ),
-  //                     ],
-  //                   ),
-  //                   actions: [
-  //                     TextButton(
-  //                       onPressed: () {
-  //                         Navigator.pop(context);
-  //                         showEditTaskForm(
-  //                           context: context,
-  //                           editTask: task,
-  //                           onSave: (updatedTask) {
-  //                             _updateTask(index, updatedTask);
-  //                           },
-  //                         );
-  //                       },
-  //                       child: const Text('Sửa'),
-  //                     ),
-
-  //                     TextButton(
-  //                       onPressed: () {
-  //                         Navigator.pop(context);
-  //                         _deleteTask(index);
-  //                       },
-  //                       child: const Text(
-  //                         'Xóa',
-  //                         style: TextStyle(color: Colors.red),
-  //                       ),
-  //                     ),
-
-  //                     TextButton(
-  //                       onPressed: () => Navigator.pop(context),
-  //                       child: const Text('Đóng'),
-  //                     ),
-  //                   ],
-  //                 );
-  //               },
-  //             );
-  //           },
-  //         );
-  //       },
-  //       padding: const EdgeInsets.symmetric(vertical: 12),
-  //       separatorBuilder: (_, __) {
-  //         return const SizedBox(height: 12);
-  //       },
-  //       itemCount: _tasks.length,
-  //     ),
-  //     }
-  //     floatingActionButton: FloatingActionButton(
-  //       onPressed: () {
-  //         showAddTaskForm(context: context, onSave: _addTask);
-  //       },
-  //       child: const Icon(Icons.add),
-  //     ),
-  //     ),
-  //   );
-  // }
 }
